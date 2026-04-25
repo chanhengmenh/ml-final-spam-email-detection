@@ -12,3 +12,5 @@ jupyter
 wordcloud
 scipy
 tensorflow
+huggingface_hub
+datasets

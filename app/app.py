@@ -10,8 +10,24 @@ sys.path.append(str(Path(__file__).parent.parent))
 from src.preprocess import preprocess, preprocess_lstm
 from src.features import build_hybrid_features, extract_structural
 
-MODELS_DIR = Path(__file__).parent.parent / "models"
-MAX_LEN    = 200   # must match notebook training config
+MODELS_DIR    = Path(__file__).parent.parent / "models"
+MAX_LEN       = 200   # must match notebook training config
+HF_MODEL_REPO = "chanhengmenh/spam_email_detection"
+
+
+def _ensure_model_files():
+    """Download all model files from HuggingFace if the directory is empty."""
+    keras_path = MODELS_DIR / "best_lstm.keras"
+    tok_path   = MODELS_DIR / "lstm_tokenizer.pkl"
+    if not keras_path.exists() or not tok_path.exists():
+        with st.spinner("Downloading models from HuggingFace Hub…"):
+            from huggingface_hub import snapshot_download
+            MODELS_DIR.mkdir(parents=True, exist_ok=True)
+            snapshot_download(
+                repo_id=HF_MODEL_REPO,
+                local_dir=str(MODELS_DIR),
+                ignore_patterns=["*.md", ".gitattributes"],
+            )
 
 st.set_page_config(page_title="Spam Email Detector", page_icon="📩", layout="centered")
 st.title("Email Spam Detection System")
@@ -25,7 +41,9 @@ def load_best_model():
     Auto-detect model type from models/:
     - If best_lstm.keras exists → load LSTM + lstm_tokenizer.pkl
     - Otherwise → load best_*.pkl classical model + tfidf_vectorizer.pkl
+    Falls back to HuggingFace Hub download if files are missing.
     """
+    _ensure_model_files()
     keras_path = MODELS_DIR / "best_lstm.keras"
     if keras_path.exists():
         tok_path = MODELS_DIR / "lstm_tokenizer.pkl"
