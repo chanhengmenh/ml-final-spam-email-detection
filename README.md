@@ -18,6 +18,7 @@ A supervised ML pipeline that classifies emails as **spam (1)** or **ham (0)**. 
 
 - **Dataset:** [chanhengmenh/spam_email_detection](https://huggingface.co/datasets/chanhengmenh/spam_email_detection) on HuggingFace (80,000 rows, 52.9% ham / 47.1% spam)
 - **Model:** [chanhengmenh/spam_email_detection](https://huggingface.co/chanhengmenh/spam_email_detection) on HuggingFace
+- **Kaggle: [https://www.kaggle.com/code/chanhengmenh/notebook3011a4bfac/notebook](https://www.kaggle.com/code/chanhengmenh/notebook3011a4bfac/notebook)**
 
 ---
 
@@ -76,14 +77,14 @@ final-project/
 
 The unified dataset is hosted on HuggingFace and downloaded automatically by `inspector.ipynb`.
 
-| Property        | Value                                  |
-| --------------- | -------------------------------------- |
-| Source          | `chanhengmenh/spam_email_detection`    |
-| Total rows      | 80,000 (after deduplication)           |
-| Ham (0)         | 42,291 (52.9%)                         |
-| Spam (1)        | 37,709 (47.1%)                         |
-| Imbalance ratio | 1.12 : 1 (ham : spam)                  |
-| Median words    | Ham = 149 words, Spam = 106 words      |
+| Property        | Value                                 |
+| --------------- | ------------------------------------- |
+| Source          | `chanhengmenh/spam_email_detection` |
+| Total rows      | 80,000 (after deduplication)          |
+| Ham (0)         | 42,291 (52.9%)                        |
+| Spam (1)        | 37,709 (47.1%)                        |
+| Imbalance ratio | 1.12 : 1 (ham : spam)                 |
+| Median words    | Ham = 149 words, Spam = 106 words     |
 
 The raw dataset was assembled from multiple Kaggle / public sources (SpamAssassin, Enron, Ling-Spam, SMS Spam) and processed via `notebooks/reduce_df.ipynb`.
 
@@ -126,14 +127,14 @@ app/app.py  (Streamlit — auto-downloads from HuggingFace on first run)
 
 ## Best Model
 
-| Metric        | Value  |
-| ------------- | ------ |
-| Model         | BiLSTM |
-| F1-Score      | 0.9746 |
-| ROC-AUC       | 0.9957 |
-| Accuracy      | 0.9758 |
-| Precision     | 0.9656 |
-| Recall        | 0.9838 |
+| Metric    | Value  |
+| --------- | ------ |
+| Model     | BiLSTM |
+| F1-Score  | 0.9746 |
+| ROC-AUC   | 0.9957 |
+| Accuracy  | 0.9758 |
+| Precision | 0.9656 |
+| Recall    | 0.9838 |
 
 Hyperparameters: Vocab=20k, MaxLen=200, EmbedDim=64, LSTMUnits=64, BatchSize=256, Epochs=5
 
@@ -143,12 +144,12 @@ Hyperparameters: Vocab=20k, MaxLen=200, EmbedDim=64, LSTMUnits=64, BatchSize=256
 
 | Decision                                 | Reason                                                                               |
 | ---------------------------------------- | ------------------------------------------------------------------------------------ |
-| `ComplementNB` over `MultinomialNB`      | Hybrid matrix has float values; CNB also handles imbalance better                    |
-| `HistGradientBoostingClassifier`         | 10–50× faster than `GradientBoostingClassifier` on 80k+ rows                        |
-| `SGDClassifier(loss='modified_huber')`   | Gives `predict_proba` unlike `loss='hinge'`; needed for ROC-AUC                     |
-| CV uses TF-IDF only                      | Structural features need raw text; can't be chained in a single sklearn `Pipeline`  |
-| TF-IDF fit on train only                 | Fitting on test data = leakage; `tfidf.transform()` used for all non-train sets     |
-| `class_weight='balanced'`                | Dataset is ~47%/53% imbalanced; prevents majority-class bias                         |
+| `ComplementNB` over `MultinomialNB`  | Hybrid matrix has float values; CNB also handles imbalance better                    |
+| `HistGradientBoostingClassifier`       | 10–50× faster than `GradientBoostingClassifier` on 80k+ rows                     |
+| `SGDClassifier(loss='modified_huber')` | Gives `predict_proba` unlike `loss='hinge'`; needed for ROC-AUC                  |
+| CV uses TF-IDF only                      | Structural features need raw text; can't be chained in a single sklearn `Pipeline` |
+| TF-IDF fit on train only                 | Fitting on test data = leakage;`tfidf.transform()` used for all non-train sets     |
+| `class_weight='balanced'`              | Dataset is ~47%/53% imbalanced; prevents majority-class bias                         |
 | Adversarial applied to spam only         | Ham emails are not adversarially modified in real attacks                            |
 | BiLSTM as final model                    | Outperforms all classical baselines; hosted on HuggingFace for zero-setup deployment |
 | HuggingFace for data & model hosting     | Avoids committing large files to git; auto-download on first run                     |
@@ -157,32 +158,32 @@ Hyperparameters: Vocab=20k, MaxLen=200, EmbedDim=64, LSTMUnits=64, BatchSize=256
 
 ## Proposal Requirements Checklist
 
-| Requirement                                 | Status |
-| ------------------------------------------- | ------ |
-| Multiple datasets merged                    | ✅     |
-| Label standardisation (spam=1, ham=0)       | ✅     |
-| 80/20 train/test split (stratified)         | ✅     |
-| Tokenisation, lowercasing, stopword removal | ✅     |
-| Stemming (PorterStemmer)                    | ✅     |
-| TF-IDF unigram + bigram                     | ✅     |
-| Hybrid features (TF-IDF + structural)       | ✅ 9 structural features |
-| Logistic Regression                         | ✅     |
-| Naïve Bayes (ComplementNB)                  | ✅     |
-| Linear SVM                                  | ✅     |
-| SGD                                         | ✅     |
-| Random Forest                               | ✅     |
-| Gradient Boosting (Hist variant)            | ✅     |
-| Deep learning model (LSTM)                  | ✅ BiLSTM, best model |
-| Accuracy, Precision, Recall, F1             | ✅     |
-| Confusion Matrix                            | ✅     |
-| ROC-AUC                                     | ✅     |
-| Training time + inference time              | ✅     |
-| Class imbalance handling                    | ✅ `class_weight='balanced'` + threshold tuning |
-| 5-fold cross-validation                     | ✅     |
-| Adversarial robustness test                 | ✅ leet / symbol / whitespace |
-| Cross-domain generalization test            | ✅     |
-| Web interface                               | ✅ Streamlit app, auto-downloads model |
-| Model saving / deployment                   | ✅ HuggingFace Hub |
+| Requirement                                 | Status                                           |
+| ------------------------------------------- | ------------------------------------------------ |
+| Multiple datasets merged                    | ✅                                               |
+| Label standardisation (spam=1, ham=0)       | ✅                                               |
+| 80/20 train/test split (stratified)         | ✅                                               |
+| Tokenisation, lowercasing, stopword removal | ✅                                               |
+| Stemming (PorterStemmer)                    | ✅                                               |
+| TF-IDF unigram + bigram                     | ✅                                               |
+| Hybrid features (TF-IDF + structural)       | ✅ 9 structural features                         |
+| Logistic Regression                         | ✅                                               |
+| Naïve Bayes (ComplementNB)                 | ✅                                               |
+| Linear SVM                                  | ✅                                               |
+| SGD                                         | ✅                                               |
+| Random Forest                               | ✅                                               |
+| Gradient Boosting (Hist variant)            | ✅                                               |
+| Deep learning model (LSTM)                  | ✅ BiLSTM, best model                            |
+| Accuracy, Precision, Recall, F1             | ✅                                               |
+| Confusion Matrix                            | ✅                                               |
+| ROC-AUC                                     | ✅                                               |
+| Training time + inference time              | ✅                                               |
+| Class imbalance handling                    | ✅`class_weight='balanced'` + threshold tuning |
+| 5-fold cross-validation                     | ✅                                               |
+| Adversarial robustness test                 | ✅ leet / symbol / whitespace                    |
+| Cross-domain generalization test            | ✅                                               |
+| Web interface                               | ✅ Streamlit app, auto-downloads model           |
+| Model saving / deployment                   | ✅ HuggingFace Hub                               |
 
 ---
 

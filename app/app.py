@@ -116,8 +116,13 @@ tab_classify, tab_info = st.tabs(["Classify", "Model Info"])
 
 # ── Classify tab ──────────────────────────────────────────────────────────────
 with tab_classify:
+    uploaded = st.file_uploader("Upload an email file (.txt or .eml)", type=["txt", "eml"])
+    if uploaded is not None:
+        st.session_state["email_text"] = uploaded.read().decode("utf-8", errors="replace")
+
     email_text = st.text_area(
-        "Paste email content below:",
+        "…or paste email content below:",
+        value=st.session_state.get("email_text", ""),
         height=250,
         placeholder="Subject: You've WON a FREE prize! Click here now!!!",
     )
