@@ -1,0 +1,25 @@
+Model Card — Spam Email Detection
+========================================
+Best Model       : BiLSTM
+Model Type       : Deep Learning
+F1-Score         : 0.9746
+ROC-AUC          : 0.9957
+Accuracy         : 0.9758
+Precision        : 0.9656
+Recall           : 0.9838
+Train Time (s)   : 1038.95
+Infer Time (ms)  : 82177.57
+
+Hyperparameters:
+  Vocab Size     : 20000
+  Max Length     : 200
+  Embedding Dim  : 64
+  LSTM Units     : 64
+  Batch Size     : 256
+  Epochs Trained : 5
+
+Dataset:
+  File           : spam_Emails_data.csv
+  Train size     : 63,920
+  Test size      : 15,980
+  Spam ratio     : 47.1%
