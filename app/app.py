@@ -1,9 +1,11 @@
 import sys
 import pickle
+import csv
 import numpy as np
 import pandas as pd
 import streamlit as st
 from pathlib import Path
+from datetime import datetime
 
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -73,6 +75,25 @@ def load_model_card() -> str | None:
     return path.read_text(encoding='utf-8') if path.exists() else None
 
 
+# ── Logging ───────────────────────────────────────────────────────────────────
+LOG_PATH = Path(__file__).parent.parent / "logs" / "classifications.csv"
+
+def log_classification(verdict: str, confidence: float, email_snippet: str):
+    """Append a classification result to the log file."""
+    LOG_PATH.parent.mkdir(exist_ok=True)
+    write_header = not LOG_PATH.exists()
+    with open(LOG_PATH, "a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        if write_header:
+            writer.writerow(["timestamp", "verdict", "confidence", "email_snippet"])
+        writer.writerow([
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            verdict,
+            f"{confidence:.4f}",
+            email_snippet[:80].replace("\n", " ")
+        ])
+
+
 # ── Inference ─────────────────────────────────────────────────────────────────
 def predict(raw_text: str, model, artifact, model_type: str) -> tuple[str, float]:
     """Return (verdict, confidence) for raw_text."""
@@ -112,7 +133,7 @@ if model is None:
     st.warning("No trained models found in `models/`. Run the training notebook first.")
     st.stop()
 
-tab_classify, tab_info = st.tabs(["Classify", "Model Info"])
+tab_classify, tab_batch, tab_info = st.tabs(["Classify", "Batch Classify", "Model Info"])
 
 # ── Classify tab ──────────────────────────────────────────────────────────────
 with tab_classify:
@@ -132,6 +153,7 @@ with tab_classify:
             st.warning("Please enter some email text.")
         else:
             verdict, conf = predict(email_text, model, artifact, model_type)
+            log_classification(verdict, conf, email_text)
 
             if verdict == 'SPAM':
                 st.error(f"**SPAM** detected — Confidence: {conf*100:.1f}%")
@@ -141,6 +163,47 @@ with tab_classify:
             if model_type == 'classical':
                 with st.expander("Feature Breakdown (9 structural features)"):
                     st.json(extract_structural(email_text))
+
+# ── Batch Classify tab ────────────────────────────────────────────────────────
+with tab_batch:
+    st.subheader("Classify Multiple Emails")
+
+    uploaded_csv = st.file_uploader("Upload a CSV file with emails", type=["csv"])
+
+    if uploaded_csv is not None:
+        df = pd.read_csv(uploaded_csv)
+        st.write(f"**Loaded {len(df)} rows**")
+
+        email_column = st.selectbox(
+            "Select the column containing email text:",
+            options=df.columns,
+            help="Choose which column has the email content to classify"
+        )
+
+        if st.button("Run Batch Classification", use_container_width=True):
+            results = []
+            with st.spinner("Classifying emails…"):
+                for idx, row in df.iterrows():
+                    email_text_batch = str(row[email_column])
+                    verdict, conf = predict(email_text_batch, model, artifact, model_type)
+                    log_classification(verdict, conf, email_text_batch)
+
+                    results.append({
+                        "verdict": verdict,
+                        "confidence": f"{conf*100:.2f}%",
+                        "email_snippet": email_text_batch[:80].replace("\n", " ")
+                    })
+
+            results_df = pd.DataFrame(results)
+            st.dataframe(results_df, use_container_width=True)
+
+            csv_buffer = results_df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Download Results as CSV",
+                data=csv_buffer,
+                file_name="batch_classification_results.csv",
+                mime="text/csv"
+            )
 
 # ── Model Info tab ────────────────────────────────────────────────────────────
 with tab_info:
