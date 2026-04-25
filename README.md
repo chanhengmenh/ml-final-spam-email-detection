@@ -24,22 +24,48 @@ A supervised ML pipeline that classifies emails as **spam (1)** or **ham (0)**. 
 
 ## Quick Start
 
-```bash
-# 1. Install dependencies
-pip install -r requirements.txt
+### 1. Set Up Virtual Environment
 
-# 2. Download and inspect the dataset (auto-fetches from HuggingFace if not present)
+```bash
+# Create a virtual environment
+python -m venv venv
+
+# Activate it (Windows)
+venv\Scripts\activate
+
+# Or activate it (macOS/Linux)
+source venv/bin/activate
+```
+
+### 2. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Train Models (Optional)
+
+Skip this if you want to use pre-trained models from HuggingFace:
+
+```bash
+# Download and inspect the dataset
 jupyter notebook notebooks/inspector.ipynb
 
-# 3. Run the full training pipeline
+# Run the full training pipeline
 jupyter notebook notebooks/spam_email_detection.ipynb
+```
 
-# 4. Launch the web app (auto-downloads models from HuggingFace on first run)
+Models will be saved to `models/` automatically.
+
+### 4. Launch the Web App
+
+```bash
 streamlit run app/app.py
 ```
 
-> **Fresh clone:** run `inspector.ipynb` first — it downloads `data/processed/spam_email.csv`
-> from HuggingFace automatically. The Streamlit app downloads model weights on first launch.
+The app will open at `http://localhost:8501`. Models are auto-downloaded from HuggingFace on first run if not present locally.
+
+> **Fresh clone:** The Streamlit app auto-downloads model weights on first launch. If you want to inspect the dataset, run `notebooks/inspector.ipynb` first.
 
 ---
 
@@ -66,6 +92,8 @@ final-project/
 │   ├── best_lstm.keras            ← BiLSTM (best model, F1=0.9746)
 │   ├── lstm_tokenizer.pkl         ← Keras tokenizer for the LSTM
 │   └── model_card.txt             ← metrics summary
+├── logs/                          ← classification logs (auto-created by app)
+│   └── classifications.csv        ← audit trail of all classifications
 ├── requirements.txt
 ├── CLAUDE.md                      ← architecture notes for Claude Code sessions
 └── README.md
@@ -140,6 +168,60 @@ Hyperparameters: Vocab=20k, MaxLen=200, EmbedDim=64, LSTMUnits=64, BatchSize=256
 
 ---
 
+## Web App (Streamlit)
+
+The Streamlit app provides an interactive interface to classify emails and track results.
+
+### Features
+
+**Classify Tab:**
+
+- Paste email content or upload `.txt` / `.eml` files
+- Get instant spam/ham prediction with confidence percentage
+- View structural feature breakdown (for classical models)
+- All classifications are logged to `logs/classifications.csv`
+
+**Batch Classify Tab:**
+
+- Upload a CSV file with multiple emails
+- Select which column contains the email text
+- Classify all emails at once with progress indicator
+- Download results as CSV
+- All batch results are logged to `logs/classifications.csv`
+
+**Model Info Tab:**
+
+- View model card with performance metrics
+- See hyperparameters and model details
+
+### Logging
+
+Every classification (single or batch) is logged to `logs/classifications.csv` with:
+
+- **timestamp**: When the classification occurred (YYYY-MM-DD HH:MM:SS)
+- **verdict**: SPAM or HAM
+- **confidence**: Confidence score (0.0000–1.0000)
+- **email_snippet**: First 80 characters of the email (for reference)
+
+Example:
+
+```
+timestamp,verdict,confidence,email_snippet
+2026-04-25 14:32:01,SPAM,0.9821,Click here to win a free iPhone!!!
+2026-04-25 14:33:15,HAM,0.9134,Hey John, can we reschedule the meeting?
+```
+
+### Configuration
+
+The app automatically detects which model to use:
+
+1. If `models/best_lstm.keras` exists → uses BiLSTM model (best performance)
+2. Otherwise → uses the best classical classifier from `models/best_*.pkl`
+
+The TF-IDF vectorizer (`models/tfidf_vectorizer.pkl`) must be present for classical models.
+
+---
+
 ## Key Technical Decisions
 
 | Decision                                 | Reason                                                                               |
@@ -184,25 +266,3 @@ Hyperparameters: Vocab=20k, MaxLen=200, EmbedDim=64, LSTMUnits=64, BatchSize=256
 | Cross-domain generalization test            | ✅                                               |
 | Web interface                               | ✅ Streamlit app, auto-downloads model           |
 | Model saving / deployment                   | ✅ HuggingFace Hub                               |
-
----
-
-## Session Log
-
-### Session 3 — 2026-04-25
-
-- Moved dataset to HuggingFace (`chanhengmenh/spam_email_detection`)
-- Moved trained models to HuggingFace (`chanhengmenh/spam_email_detection`)
-- `notebooks/inspector.ipynb` — added auto-download cell (fetches from HuggingFace if `spam_email.csv` missing)
-- `app/app.py` — added `_ensure_model_files()` using `snapshot_download`; models auto-fetched on first app launch
-- `requirements.txt` — added `huggingface_hub`, `datasets`
-
-### Session 2 — 2026-03-24
-
-- Full pipeline review against proposal (`Group-5-Spam-Email-Detection-System.pdf`)
-- Fixed 14 issues: added SGD, hybrid features, adversarial robustness, cross-domain test, `class_weight='balanced'`, switched to `HistGradientBoostingClassifier` and `ComplementNB`, switched lemmatizer → PorterStemmer, added emoji normalisation, inference time & model size tracking, threshold tuning, consistent CV pipelines
-- BiLSTM trained and saved as best model (F1=0.9746)
-
-### Session 1 — (Initial State)
-
-- Basic notebook with 5 models, pure TF-IDF, no adversarial/cross-domain testing
