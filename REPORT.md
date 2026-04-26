@@ -36,7 +36,7 @@ We compare four models — Logistic Regression, Linear SVM, XGBoost, and a Bidir
 
 ## 2. Dataset
 
-We used a single consolidated dataset (`spam_Emails_data.csv`, Kaggle) containing raw email records. After deduplication, the working corpus contained **80,000 emails**.
+We used a single downsampled Dataset dataset (`spam_Emails_data.csv`, Kaggle) containing raw email records. After deduplication, the working corpus contained **80,000 emails**.
 
 | Property | Value |
 |---|---|
