@@ -1,0 +1,21 @@
+verdict,confidence,email_snippet
+SPAM,95.65%,You've received a private message from a recruiter. Click the link to view the j
+HAM,60.59%,"Hi Mom, just calling to check in and see how the garden is doing. Give me a call"
+HAM,90.82%,Can you please send me the login credentials for the staging server? I need to t
+HAM,84.95%,Your Netflix subscription has expired. Please update your payment information at
+HAM,77.60%,Don't forget to submit your timesheet by the end of the day. Have a good weekend
+HAM,99.56%,The library books you requested are now available for pickup. Please bring your 
+SPAM,99.92%,"CONGRATULATIONS! You have been selected as the winner of the $1,000,000 Mega Lot"
+SPAM,99.52%,"Get rich quick! Earn $5,000 a week working from home with no experience. Just pa"
+SPAM,99.42%,Urgent: Your account access has been restricted. Click here to verify your ident
+HAM,97.87%,"Hey, are we still on for dinner tonight? I was thinking about that new Italian p"
+SPAM,99.38%,Re: Investment Opportunity. Invest in our new cryptocurrency token before it hit
+HAM,96.62%,I've finished the initial analysis of the dataset. I'll send over the Jupyter no
+HAM,99.16%,Thanks for the birthday wishes! It was a great day. Hope you're doing well.
+SPAM,89.41%,Your flight for Tokyo is confirmed. Check-in is now open. You can view your boar
+SPAM,98.99%,Lose 15 pounds in 3 days with this one weird trick! Doctors are stunned. Limited
+SPAM,95.52%,"RE: Hi, I'm a local single in your area and I saw your profile. Click here to se"
+HAM,99.17%,"Hi team, just a reminder that our weekly sync is moved to 3 PM today. See you al"
+HAM,91.51%,Final Notice: Your invoice #99281 is overdue. Please download the attached zip f
+HAM,99.56%,Attached is the final draft of the project proposal for your review. Let me know
+SPAM,94.05%,Official Microsoft Support: We detected a virus on your system. Call 1-800-555-0
